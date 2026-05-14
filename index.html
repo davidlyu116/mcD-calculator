@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#DA291C">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="省錢點餐">
+  <title>省錢點餐助手</title>
+  <link rel="manifest" href="manifest.json">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            mcred: '#DA291C',
+            mcdark: '#27251F',
+            mcyellow: '#FFC72C',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f5; }
+    .qty-btn {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; font-weight: bold;
+      cursor: pointer; line-height: 1; user-select: none;
+    }
+    .tab-btn { transition: all 0.15s; white-space: nowrap; }
+    .tab-btn.active { color: #DA291C; border-bottom-color: #DA291C; }
+    .tab-btn:not(.active) { color: #6b7280; border-bottom-color: transparent; }
+    .item-card { transition: all 0.15s; }
+    .item-card.selected { border-color: #FFC72C; background: #fffbeb; }
+    .sheet-enter { animation: slideUp 0.25s ease-out; }
+    @keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    #calcBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .promo-badge { font-size: 10px; padding: 1px 5px; }
+  </style>
+</head>
+<body class="bg-gray-100">
+
+<div id="app" class="max-w-md mx-auto bg-white min-h-screen relative shadow-xl">
+
+  <!-- Header -->
+  <div class="bg-mcred text-white px-4 pt-4 pb-3 sticky top-0 z-20">
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-xl font-bold tracking-tight">省錢點餐助手</h1>
+        <p class="text-xs opacity-75 mt-0.5">選好品項 → 算最省方案</p>
+      </div>
+      <div class="text-3xl">🍔</div>
+    </div>
+  </div>
+
+  <!-- My Situation Bar -->
+  <div class="bg-white border-b border-gray-100 px-4 py-2.5 sticky top-[72px] z-15">
+    <div class="flex items-center gap-2 flex-wrap">
+      <div class="flex rounded-lg overflow-hidden border border-gray-200 text-xs font-semibold">
+        <button id="prefApp"   onclick="setOrderMethod('app')"   class="px-3 py-1.5 transition-colors">📱 App 點</button>
+        <button id="prefStore" onclick="setOrderMethod('store')" class="px-3 py-1.5 transition-colors">🏪 門市點</button>
+      </div>
+      <div class="flex rounded-lg overflow-hidden border border-gray-200 text-xs font-semibold">
+        <button id="prefCardYes" onclick="setSweetCard(true)"  class="px-3 py-1.5 transition-colors">💳 甜心卡</button>
+        <button id="prefCardNo"  onclick="setSweetCard(false)" class="px-3 py-1.5 transition-colors">無卡</button>
+      </div>
+      <span class="text-xs text-gray-400 ml-auto">設定已記住</span>
+    </div>
+  </div>
+
+  <!-- Promotions Panel (maintenance) -->
+  <div class="bg-gray-50 border-b border-gray-200">
+    <button id="promoToggle" class="flex items-center justify-between w-full px-4 py-2 text-gray-400 text-xs">
+      <span>⚙️ 優惠資料更新至 <span id="lastUpdatedLabel"></span>（點此管理）</span>
+      <span id="promoChevron">▼</span>
+    </button>
+    <div id="promoPanel" class="hidden px-4 pb-3 space-y-3 border-t border-gray-200">
+      <!-- Promos rendered by JS -->
+    </div>
+  </div>
+
+  <!-- Category Tabs -->
+  <div id="catTabs" class="flex overflow-x-auto bg-white border-b border-gray-200 sticky top-[120px] z-10 scrollbar-hide">
+    <!-- Tabs rendered by JS -->
+  </div>
+
+  <!-- Menu Grid -->
+  <div id="menuGrid" class="p-3 grid grid-cols-2 gap-2.5 pb-28">
+    <!-- Items rendered by JS -->
+  </div>
+
+  <!-- Cart Footer -->
+  <div class="fixed bottom-0 left-0 right-0 max-w-md mx-auto z-20">
+    <div class="bg-mcdark text-white px-4 py-3 flex items-center justify-between gap-3">
+      <div class="text-sm">
+        <span id="cartCount" class="font-semibold">尚未選擇</span>
+        <span id="cartPriceRow" class="hidden ml-2 text-gray-400">原價 $<span id="cartTotal">0</span></span>
+      </div>
+      <button id="calcBtn" disabled
+        class="bg-mcyellow text-gray-900 font-bold px-5 py-2 rounded-full text-sm flex-shrink-0 hover:brightness-95 transition-all">
+        計算最省方案
+      </button>
+    </div>
+  </div>
+
+  <!-- Results Bottom Sheet -->
+  <div id="resultsOverlay" class="hidden fixed inset-0 bg-black/50 z-30 flex items-end max-w-md mx-auto">
+    <div id="resultsSheet" class="bg-white w-full rounded-t-2xl max-h-[85vh] overflow-y-auto sheet-enter">
+      <div class="sticky top-0 bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between rounded-t-2xl">
+        <h2 class="text-lg font-bold text-gray-800">💡 最省點餐方案</h2>
+        <button id="closeResults" class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 text-xl font-light">×</button>
+      </div>
+      <div id="resultsContent" class="p-4"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ===================== DATA =====================
+
+const CATEGORIES = [
+  { id: 'breakfast', label: '🍳 早餐' },
+  { id: 'burger',    label: '🍔 漢堡' },
+  { id: 'chicken',   label: '🍗 炸雞' },
+  { id: 'side',      label: '🍟 副食' },
+  { id: 'drink',     label: '🥤 飲料' },
+  { id: 'dessert',   label: '🍦 甜點' },
+];
+
+// ⬇️ 每次更新優惠資料時，把這個日期改掉
+const LAST_UPDATED = '2026-05-14';
+
+// 標示 * 的為參考估算價格，請依麥當勞官方 App 確認後更新
+const MENU = [
+  // 早餐（供應至 10:30）
+  { id: 'muffin_pork_egg',   name: '豬肉滿福堡加蛋',     category: 'breakfast', price: 60 },
+  { id: 'muffin_super',      name: '無敵豬肉滿福堡加蛋',  category: 'breakfast', price: 78 },
+  { id: 'muffin_chicken',    name: '香雞滿福堡加蛋',     category: 'breakfast', price: 60 },
+  { id: 'ham_egg',           name: '火腿蛋堡',           category: 'breakfast', price: 50 },
+  { id: 'big_breakfast',     name: '經典大早餐',         category: 'breakfast', price: 111 },
+  { id: 'muffin',            name: '滿福堡',             category: 'breakfast', price: 50 },
+  { id: 'muffin_pork',       name: '豬肉滿福堡',         category: 'breakfast', price: 48 },
+  { id: 'muffin_veggie',     name: '青蔬滿福堡',         category: 'breakfast', price: 58 },
+  { id: 'cheese_burger',     name: '吉事漢堡',           category: 'breakfast', price: 48 },
+  { id: 'crispy_toast',      name: '脆雞吐司',           category: 'breakfast', price: 50 },
+  // 漢堡（10:30 後）
+  { id: 'bigmac',            name: '大麥克',             category: 'burger', price: 75 },
+  { id: 'double_cheese',     name: '雙層牛肉吉事堡',     category: 'burger', price: 65 },
+  { id: 'beef_4oz',          name: '四盎司牛肉堡',       category: 'burger', price: 91 },
+  { id: 'beef_4oz_double',   name: '雙層四盎司牛肉堡',   category: 'burger', price: 131 },
+  { id: 'spicy_chicken',     name: '勁辣雞腿堡',         category: 'burger', price: 77 },
+  { id: 'mcchicken',         name: '麥香雞',             category: 'burger', price: 45 },
+  { id: 'grilled_chicken',   name: '嫩煎雞腿堡',         category: 'burger', price: 82 },
+  { id: 'fish',              name: '麥香魚',             category: 'burger', price: 49 },
+  { id: 'angus_blt',         name: 'BLT 安格斯牛肉堡',  category: 'burger', price: 124 },
+  { id: 'angus_mushroom',    name: '蕈菇安格斯牛肉堡',   category: 'burger', price: 124 },
+  // 炸雞
+  { id: 'nuggets_4',         name: '麥克雞塊 4 塊',      category: 'chicken', price: 65 },  // *參考價
+  { id: 'nuggets_6',         name: '麥克雞塊 6 塊',      category: 'chicken', price: 79 },  // *參考價
+  { id: 'nuggets_10',        name: '麥克雞塊 10 塊',     category: 'chicken', price: 106 },
+  { id: 'crispy_wing',       name: '酥嫩雞翅',           category: 'chicken', price: 49 },  // *參考價
+  { id: 'spicy_wing',        name: '勁辣香雞翅',         category: 'chicken', price: 49 },  // *參考價
+  // 副食
+  { id: 'fries_l',           name: '大薯',               category: 'side', price: 66 },
+  { id: 'fries_m',           name: '中薯',               category: 'side', price: 50 },
+  { id: 'fries_s',           name: '小薯',               category: 'side', price: 40 },
+  { id: 'hashbrown',         name: '薯餅（早餐）',        category: 'side', price: 37 },
+  { id: 'apple_pie',         name: '蘋果派',             category: 'side', price: 35 },
+  { id: 'corn_soup_l',       name: '玉米湯（大）',        category: 'side', price: 55 },
+  { id: 'corn_soup_s',       name: '玉米湯（小）',        category: 'side', price: 40 },
+  // 飲料
+  { id: 'coke_m',            name: '可樂（中）',          category: 'drink', price: 38 },
+  { id: 'sprite_m',          name: '雪碧（中）',          category: 'drink', price: 38 },
+  { id: 'hot_tea',           name: '熱紅茶',             category: 'drink', price: 25 },  // *參考價
+  { id: 'ice_tea_m',         name: '冰紅茶／綠茶（中）',  category: 'drink', price: 38 },  // *參考價
+  { id: 'americano',         name: '經典美式咖啡',        category: 'drink', price: 45 },  // *參考價
+  { id: 'hot_milk_tea',      name: '熱奶茶',             category: 'drink', price: 45 },  // *參考價
+  { id: 'latte_gold',        name: '金選那堤',           category: 'drink', price: 75 },  // *參考價
+  { id: 'americano_gold',    name: '金選美式',           category: 'drink', price: 65 },  // *參考價
+  { id: 'latte',             name: '那堤',               category: 'drink', price: 65 },  // *參考價
+  { id: 'cappuccino',        name: '卡布奇諾',           category: 'drink', price: 65 },  // *參考價
+  { id: 'honey_tea',         name: '蜂蜜紅茶（冰）',     category: 'drink', price: 55 },  // *參考價
+  { id: 'honey_milk_tea',    name: '蜂蜜奶茶',           category: 'drink', price: 60 },  // *參考價
+  { id: 'caramel_milk_tea',  name: '焦糖奶茶（冰）',     category: 'drink', price: 60 },  // *參考價
+  { id: 'milk_tea',          name: '奶茶（冰）',          category: 'drink', price: 55 },  // *參考價
+  // 甜點
+  { id: 'cone',              name: '蛋捲冰淇淋',         category: 'dessert', price: 18 },
+  { id: 'sundae',            name: '聖代',               category: 'dessert', price: 39 },
+  { id: 'mcflurry',          name: 'OREO 冰炫風',        category: 'dessert', price: 59 },
+  { id: 'mcflurry_double',   name: '雙倍 OREO 冰炫風',   category: 'dessert', price: 75 },  // *參考價
+];
+
+// 優惠規則：定期更新這裡即可
+// type 說明：
+//   bundle_fixed  → 任選 N 件，固定總價
+//   bundle_zone   → 紅區選一 + 白區選一，固定總價（如銅板 1+1）
+//   item_fixed    → 指定品項享特價
+//   bogo_zone     → 買 A 區任一件，送 B 區最貴一件免費（如甜心卡）
+const PROMOTIONS = [
+  {
+    id: 'copper_1plus1',
+    name: '銅板輕鬆點 1+1 $50',
+    description: '紅區選一（食物）＋ 白區選一（飲料）→ 合計 $50\n紅區：吉事漢堡、麥香雞、酥嫩雞翅、勁辣香雞翅、小薯、玉米湯(小)\n白區：熱紅茶、可樂(中)、雪碧(中)、經典美式',
+    type: 'bundle_zone',
+    zoneA: ['cheese_burger', 'mcchicken', 'crispy_wing', 'spicy_wing', 'fries_s', 'corn_soup_s'],
+    zoneB: ['hot_tea', 'coke_m', 'sprite_m', 'americano'],
+    bundlePrice: 50,
+    maxUses: 1,
+    active: true,
+  },
+  {
+    id: 'sweetcard_bogo',
+    name: '甜心卡：買A送B（2026 霹靂聯名）',
+    description: '買 A 區品項，送 B 區品項一件免費。有效期至 2027/3/31。',
+    type: 'bogo_zone',
+    zoneA: ['latte_gold', 'americano_gold', 'latte', 'cappuccino', 'americano',
+            'honey_tea', 'honey_milk_tea', 'caramel_milk_tea', 'milk_tea',
+            'fries_l', 'nuggets_4', 'nuggets_6', 'nuggets_10', 'corn_soup_l',
+            'mcflurry', 'mcflurry_double', 'coke_m', 'ice_tea_m'],
+    zoneB: ['americano', 'coke_m', 'sprite_m', 'ice_tea_m', 'hot_tea', 'hot_milk_tea',
+            'hashbrown', 'fries_s', 'cone'],
+    maxUses: 1,
+    requiresSweetCard: true,
+    active: true,
+  },
+];
+
+// ===================== STATE =====================
+
+const state = {
+  cart: {},
+  activePromos: new Set(PROMOTIONS.filter(p => p.active).map(p => p.id)),
+  activeCategory: 'burger',
+  promoPanelOpen: false,
+  prefs: { orderMethod: 'app', hasSweetCard: false },
+};
+
+function loadPrefs() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('mcopt_prefs') || '{}');
+    if (saved.orderMethod) state.prefs.orderMethod = saved.orderMethod;
+    if (saved.hasSweetCard !== undefined) state.prefs.hasSweetCard = saved.hasSweetCard;
+  } catch (e) {}
+}
+
+function savePrefs() {
+  localStorage.setItem('mcopt_prefs', JSON.stringify(state.prefs));
+}
+
+function setOrderMethod(method) {
+  state.prefs.orderMethod = method;
+  savePrefs();
+  renderPrefs();
+  renderPromos();
+  render();
+}
+
+function setSweetCard(val) {
+  state.prefs.hasSweetCard = val;
+  savePrefs();
+  renderPrefs();
+  renderPromos();
+  render();
+}
+
+function renderPrefs() {
+  const isApp  = state.prefs.orderMethod === 'app';
+  const hasCard = state.prefs.hasSweetCard;
+  const on  = 'bg-mcred text-white';
+  const off = 'bg-white text-gray-500';
+  const cardOn  = 'bg-pink-500 text-white';
+  const cardOff = 'bg-gray-100 text-gray-600';
+  document.getElementById('prefApp').className   = `px-3 py-1.5 transition-colors text-xs font-semibold ${isApp  ? on  : off}`;
+  document.getElementById('prefStore').className = `px-3 py-1.5 transition-colors text-xs font-semibold ${!isApp ? on  : off}`;
+  document.getElementById('prefCardYes').className = `px-3 py-1.5 transition-colors text-xs font-semibold ${hasCard  ? cardOn  : cardOff}`;
+  document.getElementById('prefCardNo').className  = `px-3 py-1.5 transition-colors text-xs font-semibold ${!hasCard ? cardOn  : cardOff}`;
+}
+
+function isPromoCompatible(promo) {
+  if (promo.channel === 'app' && state.prefs.orderMethod !== 'app') return false;
+  if (promo.requiresSweetCard && !state.prefs.hasSweetCard) return false;
+  return true;
+}
+
+function getApplicablePromos() {
+  return PROMOTIONS.filter(p => state.activePromos.has(p.id) && isPromoCompatible(p));
+}
+
+// ===================== OPTIMIZER =====================
+
+function buildFlatCart() {
+  const items = [];
+  for (const [itemId, qty] of Object.entries(state.cart)) {
+    const menuItem = MENU.find(m => m.id === itemId);
+    if (!menuItem || qty <= 0) continue;
+    for (let i = 0; i < qty; i++) {
+      items.push({ ...menuItem, _uid: `${itemId}_${i}` });
+    }
+  }
+  return items;
+}
+
+function optimize() {
+  let remaining = buildFlatCart();
+  const regularTotal = remaining.reduce((s, i) => s + i.price, 0);
+
+  const activeList = getApplicablePromos();
+  const applied = [];
+  let discount = 0;
+
+  // 1. bundle_fixed（如 1+1 $50）
+  for (const promo of activeList.filter(p => p.type === 'bundle_fixed')) {
+    let uses = 0;
+    while (uses < promo.maxUses) {
+      const eligible = remaining.filter(i => promo.eligibleItems.includes(i.id));
+      if (eligible.length < promo.bundleSize) break;
+      eligible.sort((a, b) => b.price - a.price);
+      const bundle = eligible.slice(0, promo.bundleSize);
+      const bundleRegular = bundle.reduce((s, i) => s + i.price, 0);
+      if (promo.bundlePrice >= bundleRegular) break;
+      const saved = bundleRegular - promo.bundlePrice;
+      applied.push({ promo, items: bundle, paid: promo.bundlePrice, saved });
+      discount += saved;
+      const uids = new Set(bundle.map(i => i._uid));
+      remaining = remaining.filter(i => !uids.has(i._uid));
+      uses++;
+    }
+  }
+
+  // 2. item_fixed（如 App 特價）
+  for (const promo of activeList.filter(p => p.type === 'item_fixed')) {
+    let uses = 0;
+    for (let i = 0; i < remaining.length && uses < promo.maxUses; i++) {
+      const item = remaining[i];
+      if (!promo.eligibleItems.includes(item.id)) continue;
+      if (promo.fixedPrice >= item.price) continue;
+      const saved = item.price - promo.fixedPrice;
+      applied.push({ promo, items: [item], paid: promo.fixedPrice, saved });
+      discount += saved;
+      remaining.splice(i, 1);
+      i--; uses++;
+    }
+  }
+
+  // 3. bogo（買一送一）
+  for (const promo of activeList.filter(p => p.type === 'bogo')) {
+    let uses = 0;
+    let pairs = 0;
+    for (let i = 0; i < remaining.length && uses < promo.maxUses; i++) {
+      if (!promo.eligibleItems.includes(remaining[i].id)) continue;
+      pairs++;
+      if (pairs % 2 === 0) {
+        const free = remaining[i];
+        applied.push({ promo, items: [free], paid: 0, saved: free.price });
+        discount += free.price;
+        remaining.splice(i, 1);
+        i--; uses++;
+      }
+    }
+  }
+
+  // 4. bundle_zone（紅區+白區，如銅板 1+1 $50）
+  for (const promo of activeList.filter(p => p.type === 'bundle_zone')) {
+    let uses = 0;
+    while (uses < promo.maxUses) {
+      const fromA = remaining.filter(i => promo.zoneA.includes(i.id));
+      const fromB = remaining.filter(i => promo.zoneB.includes(i.id));
+      if (!fromA.length || !fromB.length) break;
+      fromA.sort((a, b) => b.price - a.price);
+      fromB.sort((a, b) => b.price - a.price);
+      const itemA = fromA[0], itemB = fromB[0];
+      const regular = itemA.price + itemB.price;
+      if (promo.bundlePrice >= regular) break;
+      const saved = regular - promo.bundlePrice;
+      applied.push({ promo, items: [itemA, itemB], paid: promo.bundlePrice, saved });
+      discount += saved;
+      const uids = new Set([itemA._uid, itemB._uid]);
+      remaining = remaining.filter(i => !uids.has(i._uid));
+      uses++;
+    }
+  }
+
+  // 5. bogo_zone（甜心卡買A送B）
+  for (const promo of activeList.filter(p => p.type === 'bogo_zone')) {
+    let uses = 0;
+    while (uses < promo.maxUses) {
+      const fromA = remaining.filter(i => promo.zoneA.includes(i.id));
+      const fromB = remaining.filter(i => promo.zoneB.includes(i.id));
+      if (!fromA.length || !fromB.length) break;
+      fromB.sort((a, b) => b.price - a.price);
+      const freeItem = fromB[0];
+      applied.push({ promo, items: [freeItem], paid: 0, saved: freeItem.price,
+        bogoNote: `${freeItem.name} 免費` });
+      discount += freeItem.price;
+      remaining = remaining.filter(i => i._uid !== freeItem._uid);
+      uses++;
+    }
+  }
+
+  const remainingTotal = remaining.reduce((s, i) => s + i.price, 0);
+  const total = regularTotal - discount;
+
+  return { regularTotal, total, discount, applied, remaining };
+}
+
+// ===================== RENDER =====================
+
+function getActivePromoIds(itemId) {
+  return PROMOTIONS.filter(p => {
+    if (!state.activePromos.has(p.id) || !isPromoCompatible(p)) return false;
+    const allEligible = [
+      ...(p.eligibleItems || []),
+      ...(p.zoneA || []),
+      ...(p.zoneB || []),
+    ];
+    return allEligible.includes(itemId);
+  });
+}
+
+function renderCategoryTabs() {
+  document.getElementById('catTabs').innerHTML = CATEGORIES.map(cat => `
+    <button class="tab-btn flex-shrink-0 px-4 py-2.5 text-sm font-medium border-b-2 ${state.activeCategory === cat.id ? 'active' : ''}"
+      data-cat="${cat.id}">${cat.label}</button>
+  `).join('');
+}
+
+function renderMenu() {
+  const items = MENU.filter(i => i.category === state.activeCategory);
+  document.getElementById('menuGrid').innerHTML = items.map(item => {
+    const qty = state.cart[item.id] || 0;
+    const promos = getActivePromoIds(item.id);
+    const hasPromo = promos.length > 0;
+    const selected = qty > 0;
+    return `
+      <div class="item-card border-2 rounded-xl p-3 bg-white relative ${selected ? 'selected' : 'border-gray-200'}">
+        ${hasPromo ? `<span class="promo-badge absolute -top-1.5 -right-1.5 bg-mcred text-white rounded-full font-bold">優惠</span>` : ''}
+        <div class="font-semibold text-sm text-gray-800 leading-snug mb-1">${item.name}</div>
+        <div class="text-mcred font-bold text-base">$${item.price}</div>
+        ${hasPromo ? `<div class="text-xs text-amber-600 mt-0.5">${promos[0].name}</div>` : ''}
+        <div class="flex items-center justify-between mt-2 gap-1">
+          ${selected ? `
+            <button class="qty-btn bg-gray-100 text-gray-600 hover:bg-gray-200" onclick="updateQty('${item.id}',-1)">−</button>
+            <span class="font-bold text-gray-900 text-base w-6 text-center">${qty}</span>
+            <button class="qty-btn bg-mcred text-white hover:bg-red-700" onclick="updateQty('${item.id}',1)">+</button>
+          ` : `
+            <button class="w-full py-1.5 rounded-lg bg-mcred text-white text-sm font-semibold hover:bg-red-700" onclick="updateQty('${item.id}',1)">加入</button>
+          `}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderPromos() {
+  document.getElementById('promoPanel').innerHTML =
+    `<p class="text-xs text-gray-400 pt-2 pb-1">打勾 = 這個優惠目前還在跑。符合你身份的優惠會自動算進去，不用額外操作。</p>` +
+    PROMOTIONS.map(promo => {
+      const compatible = isPromoCompatible(promo);
+      let hint = '';
+      if (promo.channel === 'app' && state.prefs.orderMethod !== 'app') hint = '你選了門市點，此優惠不會套用';
+      if (promo.requiresSweetCard && !state.prefs.hasSweetCard) hint = '你選了無甜心卡，此優惠不會套用';
+      return `
+      <label class="flex items-start gap-2.5 cursor-pointer pt-1.5">
+        <input type="checkbox" class="mt-0.5 w-4 h-4 accent-mcred flex-shrink-0"
+          ${state.activePromos.has(promo.id) ? 'checked' : ''}
+          onchange="togglePromo('${promo.id}',this.checked)">
+        <div class="flex-1 min-w-0">
+          <div class="text-sm font-medium ${compatible ? 'text-gray-700' : 'text-gray-400'}">${promo.name}</div>
+          <div class="text-xs text-gray-400 mt-0.5">${promo.description}</div>
+          ${hint ? `<div class="text-xs text-orange-400 mt-0.5">⚠️ ${hint}</div>` : ''}
+        </div>
+      </label>`;
+    }).join('');
+}
+
+function renderCartBar() {
+  const totalQty = Object.values(state.cart).reduce((s, q) => s + q, 0);
+  const totalPrice = Object.entries(state.cart).reduce((s, [id, qty]) => {
+    const m = MENU.find(m => m.id === id);
+    return s + (m ? m.price * qty : 0);
+  }, 0);
+
+  const calcBtn = document.getElementById('calcBtn');
+  const cartCount = document.getElementById('cartCount');
+  const cartPriceRow = document.getElementById('cartPriceRow');
+
+  if (totalQty === 0) {
+    cartCount.textContent = '尚未選擇品項';
+    cartPriceRow.classList.add('hidden');
+    calcBtn.disabled = true;
+  } else {
+    cartCount.textContent = `已選 ${totalQty} 項`;
+    document.getElementById('cartTotal').textContent = totalPrice;
+    cartPriceRow.classList.remove('hidden');
+    calcBtn.disabled = false;
+  }
+}
+
+function renderResults(r) {
+  const { regularTotal, total, discount, applied, remaining } = r;
+
+  let html = '';
+
+  // Summary banner
+  if (discount > 0) {
+    html += `
+      <div class="bg-green-50 border border-green-200 rounded-2xl p-4 mb-4 text-center">
+        <div class="text-2xl font-extrabold text-green-700">省了 $${discount}！</div>
+        <div class="text-sm text-green-600 mt-0.5">原價 $${regularTotal} → 實付 <span class="font-bold text-green-700">$${total}</span></div>
+      </div>`;
+  } else {
+    html += `
+      <div class="bg-gray-50 border border-gray-200 rounded-2xl p-4 mb-4 text-center">
+        <div class="text-gray-500 text-sm">目前選的品項沒有可套用的優惠</div>
+        <div class="font-bold text-xl mt-1">合計 $${total}</div>
+      </div>`;
+  }
+
+  // Applied promos
+  if (applied.length > 0) {
+    html += `<div class="font-semibold text-gray-700 text-sm mb-2">✅ 套用優惠</div>
+             <div class="space-y-2 mb-4">`;
+    for (const a of applied) {
+      const itemNames = a.items.map(i => i.name).join(' + ');
+      const itemsRegular = a.items.reduce((s, i) => s + i.price, 0);
+      html += `
+        <div class="border border-amber-200 bg-amber-50 rounded-xl p-3">
+          <div class="flex items-center justify-between">
+            <span class="font-semibold text-sm text-amber-800">${a.promo.name}</span>
+            <span class="text-green-600 font-bold text-sm">省 $${a.saved}</span>
+          </div>
+          <div class="text-xs text-gray-500 mt-0.5">${itemNames}</div>
+          ${a.upgradeNote ? `<div class="text-xs text-purple-600 mt-0.5">↑ ${a.upgradeNote}</div>` : ''}
+          <div class="flex items-center gap-2 mt-1.5">
+            <span class="text-xs text-gray-400 line-through">$${itemsRegular}</span>
+            <span class="text-base font-bold text-mcred">$${a.paid}</span>
+          </div>
+          ${a.promo.channel === 'app' ? `<div class="text-xs text-blue-500 mt-1">📱 請用 McDonald's App 點此品項</div>` : ''}
+          ${a.promo.requiresSweetCard ? `<div class="text-xs text-pink-500 mt-1">💳 需出示甜心卡</div>` : ''}
+        </div>`;
+    }
+    html += '</div>';
+  }
+
+  // Remaining items
+  if (remaining.length > 0) {
+    html += `<div class="font-semibold text-gray-700 text-sm mb-2">💰 其餘品項（原價）</div>
+             <div class="bg-gray-50 rounded-xl divide-y divide-gray-100 mb-4">`;
+    const grouped = {};
+    for (const i of remaining) {
+      grouped[i.id] = grouped[i.id] || { name: i.name, price: i.price, qty: 0 };
+      grouped[i.id].qty++;
+    }
+    for (const g of Object.values(grouped)) {
+      html += `
+        <div class="flex justify-between items-center px-3 py-2 text-sm">
+          <span class="text-gray-700">${g.name} × ${g.qty}</span>
+          <span class="font-semibold text-gray-900">$${g.price * g.qty}</span>
+        </div>`;
+    }
+    html += '</div>';
+  }
+
+  // Total
+  html += `
+    <div class="bg-mcdark text-white rounded-2xl p-4 flex items-center justify-between">
+      <div>
+        <div class="font-semibold">實際付款</div>
+        ${discount > 0 ? `<div class="text-xs text-gray-400 mt-0.5">已省 $${discount}</div>` : ''}
+      </div>
+      <div class="text-3xl font-extrabold text-mcyellow">$${total}</div>
+    </div>`;
+
+  // Tips
+  const needsApp = applied.some(a => a.promo.channel === 'app');
+  const needsCard = applied.some(a => a.promo.requiresSweetCard);
+  if (needsApp || needsCard) {
+    html += `<div class="mt-3 text-xs text-gray-500 space-y-1">`;
+    if (needsApp) html += `<div>📱 部分優惠需用 <strong>McDonald's App</strong> 點餐才有效</div>`;
+    if (needsCard) html += `<div>💳 部分優惠需出示 <strong>甜心卡</strong></div>`;
+    html += `</div>`;
+  }
+
+  // Disclaimer
+  html += `
+    <div class="mt-4 p-3 bg-gray-50 rounded-xl text-xs text-gray-400 leading-relaxed">
+      ⚠️ 本工具為個人愛好者開發，優惠資料更新至 ${LAST_UPDATED}。<br>
+      實際優惠與金額以麥當勞官方 App 及現場結帳為準，本工具不負任何差異責任。
+    </div>`;
+
+  document.getElementById('resultsContent').innerHTML = html;
+}
+
+function render() {
+  renderCategoryTabs();
+  renderMenu();
+  renderCartBar();
+  attachTabListeners();
+}
+
+function attachTabListeners() {
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      state.activeCategory = btn.dataset.cat;
+      render();
+    });
+  });
+}
+
+// ===================== HANDLERS =====================
+
+function updateQty(itemId, delta) {
+  const cur = state.cart[itemId] || 0;
+  const next = Math.max(0, cur + delta);
+  if (next === 0) delete state.cart[itemId];
+  else state.cart[itemId] = next;
+  render();
+}
+
+function togglePromo(promoId, checked) {
+  if (checked) state.activePromos.add(promoId);
+  else state.activePromos.delete(promoId);
+}
+
+// ===================== INIT =====================
+
+document.addEventListener('DOMContentLoaded', () => {
+  loadPrefs();
+  renderPrefs();
+  renderPromos();
+  render();
+  document.getElementById('lastUpdatedLabel').textContent = LAST_UPDATED;
+
+  document.getElementById('promoToggle').addEventListener('click', () => {
+    state.promoPanelOpen = !state.promoPanelOpen;
+    document.getElementById('promoPanel').classList.toggle('hidden', !state.promoPanelOpen);
+    document.getElementById('promoChevron').textContent = state.promoPanelOpen ? '▲' : '▼';
+  });
+
+  document.getElementById('calcBtn').addEventListener('click', () => {
+    const results = optimize();
+    renderResults(results);
+    document.getElementById('resultsOverlay').classList.remove('hidden');
+  });
+
+  document.getElementById('closeResults').addEventListener('click', () => {
+    document.getElementById('resultsOverlay').classList.add('hidden');
+  });
+
+  document.getElementById('resultsOverlay').addEventListener('click', (e) => {
+    if (e.target === e.currentTarget) {
+      document.getElementById('resultsOverlay').classList.add('hidden');
+    }
+  });
+});
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+</script>
+</body>
+</html>
