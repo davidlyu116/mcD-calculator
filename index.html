@@ -133,67 +133,94 @@ const CATEGORIES = [
 ];
 
 // ⬇️ 每次更新優惠資料時，把這個日期改掉
-const LAST_UPDATED = '2026-05-14';
+const LAST_UPDATED = '2026-05-27';
 
-// 標示 * 的為參考估算價格，請依麥當勞官方 App 確認後更新
 const MENU = [
   // 早餐（供應至 10:30）
   { id: 'muffin_pork_egg',   name: '豬肉滿福堡加蛋',     category: 'breakfast', price: 60 },
-  { id: 'muffin_super',      name: '無敵豬肉滿福堡加蛋',  category: 'breakfast', price: 78 },
-  { id: 'muffin_chicken',    name: '香雞滿福堡加蛋',     category: 'breakfast', price: 60 },
-  { id: 'ham_egg',           name: '火腿蛋堡',           category: 'breakfast', price: 50 },
-  { id: 'big_breakfast',     name: '經典大早餐',         category: 'breakfast', price: 111 },
-  { id: 'muffin',            name: '滿福堡',             category: 'breakfast', price: 50 },
-  { id: 'muffin_pork',       name: '豬肉滿福堡',         category: 'breakfast', price: 48 },
-  { id: 'muffin_veggie',     name: '青蔬滿福堡',         category: 'breakfast', price: 58 },
+  { id: 'muffin_super',      name: '無敵豬肉滿福堡加蛋',  category: 'breakfast', price: 80 },
+  { id: 'muffin_pork_egg2',  name: '豬肉蛋堡',           category: 'breakfast', price: 64 },
+  { id: 'ham_egg',           name: '火腿蛋堡',           category: 'breakfast', price: 52 },
+  { id: 'big_breakfast',     name: '經典大早餐',         category: 'breakfast', price: 114 },
+  { id: 'muffin',            name: '滿福堡',             category: 'breakfast', price: 52 },
+  { id: 'muffin_pork',       name: '豬肉滿福堡',         category: 'breakfast', price: 50 },
+  { id: 'muffin_veggie',     name: '青蔬滿福堡',         category: 'breakfast', price: 60 },
   { id: 'cheese_burger',     name: '吉事漢堡',           category: 'breakfast', price: 48 },
-  { id: 'crispy_toast',      name: '脆雞吐司',           category: 'breakfast', price: 50 },
   // 漢堡（10:30 後）
-  { id: 'bigmac',            name: '大麥克',             category: 'burger', price: 75 },
-  { id: 'double_cheese',     name: '雙層牛肉吉事堡',     category: 'burger', price: 65 },
-  { id: 'beef_4oz',          name: '四盎司牛肉堡',       category: 'burger', price: 91 },
-  { id: 'beef_4oz_double',   name: '雙層四盎司牛肉堡',   category: 'burger', price: 131 },
-  { id: 'spicy_chicken',     name: '勁辣雞腿堡',         category: 'burger', price: 77 },
-  { id: 'mcchicken',         name: '麥香雞',             category: 'burger', price: 45 },
-  { id: 'grilled_chicken',   name: '嫩煎雞腿堡',         category: 'burger', price: 82 },
-  { id: 'fish',              name: '麥香魚',             category: 'burger', price: 49 },
-  { id: 'angus_blt',         name: 'BLT 安格斯牛肉堡',  category: 'burger', price: 124 },
-  { id: 'angus_mushroom',    name: '蕈菇安格斯牛肉堡',   category: 'burger', price: 124 },
+  { id: 'bigmac',            name: '大麥克',             category: 'burger', price: 78 },
+  { id: 'double_cheese',     name: '雙層牛肉吉士堡',     category: 'burger', price: 72 },
+  { id: 'beef_4oz',          name: '四盎司牛肉堡',       category: 'burger', price: 92 },
+  { id: 'beef_4oz_spicy',    name: '辣味四盎司牛肉堡',   category: 'burger', price: 92 },
+  { id: 'beef_4oz_double',   name: '雙層四盎司牛肉堡',   category: 'burger', price: 132 },
+  { id: 'spicy_chicken',     name: '勁辣雞腿堡',         category: 'burger', price: 78 },
+  { id: 'mcchicken',         name: '麥香雞',             category: 'burger', price: 48 },
+  { id: 'mcchicken_double',  name: '雙層麥香雞',         category: 'burger', price: 78 },
+  { id: 'grilled_chicken',   name: '嫩煎雞腿堡',         category: 'burger', price: 83 },
+  { id: 'fish',              name: '麥香魚',             category: 'burger', price: 52 },
+  { id: 'fish_double',       name: '雙層麥香魚',         category: 'burger', price: 92 },
+  { id: 'angus_blt',         name: 'BLT 安格斯牛肉堡',  category: 'burger', price: 122 },
+  { id: 'angus_blt_chicken', name: 'BLT 嫩煎雞腿堡',    category: 'burger', price: 122 },
+  { id: 'angus_mushroom',    name: '蕈菇安格斯牛肉堡',   category: 'burger', price: 132 },
+  { id: 'chef_mushroom',     name: '蕈菇主廚雞腿堡',     category: 'burger', price: 132 },
+  { id: 'angus_charcoal',    name: '炭燒秘醬安格斯牛肉堡', category: 'burger', price: 119 },
+  { id: 'chicken_charcoal',  name: '炭燒秘醬香烙雞腿堡', category: 'burger', price: 119 },
   // 炸雞
-  { id: 'nuggets_4',         name: '麥克雞塊 4 塊',      category: 'chicken', price: 65 },  // *參考價
-  { id: 'nuggets_6',         name: '麥克雞塊 6 塊',      category: 'chicken', price: 79 },  // *參考價
-  { id: 'nuggets_10',        name: '麥克雞塊 10 塊',     category: 'chicken', price: 106 },
-  { id: 'crispy_wing',       name: '酥嫩雞翅',           category: 'chicken', price: 49 },  // *參考價
-  { id: 'spicy_wing',        name: '勁辣香雞翅',         category: 'chicken', price: 49 },  // *參考價
+  { id: 'nuggets_4',         name: '麥克雞塊 4 塊',      category: 'chicken', price: 48 },
+  { id: 'nuggets_6',         name: '麥克雞塊 6 塊',      category: 'chicken', price: 68 },
+  { id: 'nuggets_10',        name: '麥克雞塊 10 塊',     category: 'chicken', price: 109 },
+  { id: 'crispy_wing',       name: '酥嫩雞翅（2塊）',    category: 'chicken', price: 49 },
+  { id: 'spicy_wing',        name: '勁辣香雞翅（2塊）',  category: 'chicken', price: 49 },
   // 副食
   { id: 'fries_l',           name: '大薯',               category: 'side', price: 66 },
   { id: 'fries_m',           name: '中薯',               category: 'side', price: 50 },
   { id: 'fries_s',           name: '小薯',               category: 'side', price: 40 },
-  { id: 'hashbrown',         name: '薯餅（早餐）',        category: 'side', price: 37 },
-  { id: 'apple_pie',         name: '蘋果派',             category: 'side', price: 35 },
+  { id: 'curly_fries',       name: '捲捲薯條',           category: 'side', price: 66 },
+  { id: 'hashbrown',         name: '薯餅',               category: 'side', price: 37 },
+  { id: 'apple_pie',         name: '蘋果派',             category: 'side', price: 40 },
   { id: 'corn_soup_l',       name: '玉米湯（大）',        category: 'side', price: 55 },
-  { id: 'corn_soup_s',       name: '玉米湯（小）',        category: 'side', price: 40 },
+  { id: 'corn_soup_s',       name: '玉米湯（小）',        category: 'side', price: 43 },
   // 飲料
   { id: 'coke_m',            name: '可樂（中）',          category: 'drink', price: 38 },
   { id: 'sprite_m',          name: '雪碧（中）',          category: 'drink', price: 38 },
-  { id: 'hot_tea',           name: '熱紅茶',             category: 'drink', price: 25 },  // *參考價
-  { id: 'ice_tea_m',         name: '冰紅茶／綠茶（中）',  category: 'drink', price: 38 },  // *參考價
-  { id: 'americano',         name: '經典美式咖啡',        category: 'drink', price: 45 },  // *參考價
-  { id: 'hot_milk_tea',      name: '熱奶茶',             category: 'drink', price: 45 },  // *參考價
-  { id: 'latte_gold',        name: '金選那堤',           category: 'drink', price: 75 },  // *參考價
-  { id: 'americano_gold',    name: '金選美式',           category: 'drink', price: 65 },  // *參考價
-  { id: 'latte',             name: '那堤',               category: 'drink', price: 65 },  // *參考價
-  { id: 'cappuccino',        name: '卡布奇諾',           category: 'drink', price: 65 },  // *參考價
-  { id: 'honey_tea',         name: '蜂蜜紅茶（冰）',     category: 'drink', price: 55 },  // *參考價
-  { id: 'honey_milk_tea',    name: '蜂蜜奶茶',           category: 'drink', price: 60 },  // *參考價
-  { id: 'caramel_milk_tea',  name: '焦糖奶茶（冰）',     category: 'drink', price: 60 },  // *參考價
-  { id: 'milk_tea',          name: '奶茶（冰）',          category: 'drink', price: 55 },  // *參考價
+  { id: 'hot_tea',           name: '熱紅茶',             category: 'drink', price: 38 },
+  { id: 'ice_tea_m',         name: '無糖冰紅茶／綠茶（中）', category: 'drink', price: 43 },
+  { id: 'lemon_tea',         name: '檸檬紅茶',           category: 'drink', price: 38 },
+  { id: 'milk_tea',          name: '冰奶茶（大）',        category: 'drink', price: 51 },
+  { id: 'hot_milk_tea',      name: '熱奶茶（中）',        category: 'drink', price: 51 },
+  { id: 'honey_tea',         name: '冰／熱蜂蜜紅茶（大）', category: 'drink', price: 56 },
+  { id: 'honey_milk_tea',    name: '冰／熱蜂蜜奶茶（大）', category: 'drink', price: 66 },
+  { id: 'caramel_milk_tea',  name: '焦糖冰奶茶',         category: 'drink', price: 68 },
+  { id: 'americano',         name: '經典美式咖啡（中）',  category: 'drink', price: 50 },
+  { id: 'americano_l',       name: '經典美式咖啡（大）',  category: 'drink', price: 67 },
+  { id: 'latte',             name: '經典那堤（中）',      category: 'drink', price: 77 },
+  { id: 'cappuccino',        name: '卡布奇諾',           category: 'drink', price: 78 },
   // 甜點
   { id: 'cone',              name: '蛋捲冰淇淋',         category: 'dessert', price: 18 },
+  { id: 'cone_large',        name: '大蛋捲冰淇淋',       category: 'dessert', price: 32 },
   { id: 'sundae',            name: '聖代',               category: 'dessert', price: 39 },
   { id: 'mcflurry',          name: 'OREO 冰炫風',        category: 'dessert', price: 59 },
-  { id: 'mcflurry_double',   name: '雙倍 OREO 冰炫風',   category: 'dessert', price: 75 },  // *參考價
 ];
+
+// 套餐加價對照（以主食單價為基礎）
+// 資料來源：麥當勞官方菜單 2026-05-27
+const COMBO_TYPES = [
+  { key: 'A', label: 'A 經典', extra: 75,  includes: '中薯＋中杯飲料' },
+  { key: 'B', label: 'B 清爽', extra: 80,  includes: '生菜沙拉＋中杯飲料' },
+  { key: 'C', label: 'C 勁脆', extra: 94,  includes: '麥脆雞腿＋中杯飲料' },
+  { key: 'D', label: 'D 冰品', extra: 109, includes: '冰炫風＋中薯＋中杯飲料' },
+  { key: 'E', label: 'E 豪華', extra: 109, includes: '麥克雞塊6塊＋中薯＋中杯飲料' },
+];
+
+// 可點套餐的主食 ID 清單
+const COMBO_MAINS = new Set([
+  'bigmac', 'double_cheese', 'beef_4oz', 'beef_4oz_spicy', 'beef_4oz_double',
+  'mcchicken', 'mcchicken_double', 'grilled_chicken',
+  'nuggets_6', 'nuggets_10',
+  'spicy_chicken', 'fish', 'fish_double',
+  'angus_blt', 'angus_blt_chicken',
+  'angus_mushroom', 'chef_mushroom',
+  'angus_charcoal', 'chicken_charcoal',
+]);
 
 // 優惠規則：定期更新這裡即可
 // type 說明：
@@ -205,7 +232,7 @@ const PROMOTIONS = [
   {
     id: 'copper_1plus1',
     name: '銅板輕鬆點 1+1 $50',
-    description: '紅區選一（食物）＋ 白區選一（飲料）→ 合計 $50\n紅區：吉事漢堡、麥香雞、酥嫩雞翅、勁辣香雞翅、小薯、玉米湯(小)\n白區：熱紅茶、可樂(中)、雪碧(中)、經典美式',
+    description: '紅區選一（食物）＋ 白區選一（飲料）→ 合計 $50\n紅區：吉事漢堡、麥香雞、酥嫩雞翅、勁辣香雞翅、小薯、玉米湯(小)\n白區：熱紅茶、可樂(中)、雪碧(中)、經典美式(中)',
     type: 'bundle_zone',
     zoneA: ['cheese_burger', 'mcchicken', 'crispy_wing', 'spicy_wing', 'fries_s', 'corn_soup_s'],
     zoneB: ['hot_tea', 'coke_m', 'sprite_m', 'americano'],
@@ -218,10 +245,10 @@ const PROMOTIONS = [
     name: '甜心卡：買A送B（2026 霹靂聯名）',
     description: '買 A 區品項，送 B 區品項一件免費。有效期至 2027/3/31。',
     type: 'bogo_zone',
-    zoneA: ['latte_gold', 'americano_gold', 'latte', 'cappuccino', 'americano',
+    zoneA: ['latte', 'cappuccino', 'americano', 'americano_l',
             'honey_tea', 'honey_milk_tea', 'caramel_milk_tea', 'milk_tea',
             'fries_l', 'nuggets_4', 'nuggets_6', 'nuggets_10', 'corn_soup_l',
-            'mcflurry', 'mcflurry_double', 'coke_m', 'ice_tea_m'],
+            'mcflurry', 'coke_m', 'ice_tea_m'],
     zoneB: ['americano', 'coke_m', 'sprite_m', 'ice_tea_m', 'hot_tea', 'hot_milk_tea',
             'hashbrown', 'fries_s', 'cone'],
     maxUses: 1,
@@ -289,6 +316,72 @@ function isPromoCompatible(promo) {
 
 function getApplicablePromos() {
   return PROMOTIONS.filter(p => state.activePromos.has(p.id) && isPromoCompatible(p));
+}
+
+// ===================== PROMO HINTS =====================
+
+function getPromoHints() {
+  const hints = [];
+  const cartIds = Object.keys(state.cart).filter(id => state.cart[id] > 0);
+
+  // 1. 銅板 1+1：有 A 區沒 B 區，或有 B 區沒 A 區
+  const oneplus = PROMOTIONS.find(p => p.id === 'copper_1plus1');
+  if (oneplus && state.activePromos.has(oneplus.id)) {
+    const hasA = cartIds.some(id => oneplus.zoneA.includes(id));
+    const hasB = cartIds.some(id => oneplus.zoneB.includes(id));
+    if (hasA && !hasB) {
+      const items = MENU.filter(m => oneplus.zoneB.includes(m.id));
+      hints.push({ type: '1plus1_need_drink', items, promo: oneplus });
+    } else if (!hasA && hasB) {
+      const items = MENU.filter(m => oneplus.zoneA.includes(m.id));
+      hints.push({ type: '1plus1_need_food', items, promo: oneplus });
+    }
+  }
+
+  // 2. 甜心卡：有 A 區沒 B 區
+  const sweet = PROMOTIONS.find(p => p.id === 'sweetcard_bogo');
+  if (sweet && state.activePromos.has(sweet.id) && state.prefs.hasSweetCard) {
+    const aInCart = cartIds.filter(id => sweet.zoneA.includes(id));
+    const hasB    = cartIds.some(id => sweet.zoneB.includes(id));
+    if (aInCart.length > 0 && !hasB) {
+      const triggerItem = MENU.find(m => m.id === aInCart[0]);
+      const freeItems   = MENU.filter(m => sweet.zoneB.includes(m.id));
+      hints.push({ type: 'sweetcard_pick_free', triggerItem, freeItems, promo: sweet });
+    }
+  }
+
+  // 3. 套餐提示：購物車裡有可套餐的主食
+  for (const id of cartIds) {
+    if (!COMBO_MAINS.has(id)) continue;
+    const main = MENU.find(m => m.id === id);
+    if (!main) continue;
+    // 計算用戶有沒有已選「可被套餐涵蓋」的副食＋飲料
+    const sideIds  = ['fries_s', 'fries_m', 'fries_l', 'curly_fries', 'corn_soup_s', 'corn_soup_l', 'hashbrown'];
+    const drinkIds = ['coke_m', 'sprite_m', 'hot_tea', 'ice_tea_m', 'lemon_tea', 'milk_tea',
+                      'hot_milk_tea', 'honey_tea', 'honey_milk_tea', 'caramel_milk_tea',
+                      'americano', 'americano_l', 'latte', 'cappuccino'];
+    const hasSide  = cartIds.some(i => sideIds.includes(i));
+    const hasDrink = cartIds.some(i => drinkIds.includes(i));
+
+    const comboRows = COMBO_TYPES.map(ct => {
+      const comboPrice = main.price + ct.extra;
+      let singleEquiv  = main.price;
+      // 估算「如果分開點」的參考價（以最便宜常見組合為準）
+      const refSide  = 50; // 中薯
+      const refDrink = 38; // 可樂中
+      if (ct.key === 'A') singleEquiv = main.price + refSide + refDrink;
+      if (ct.key === 'B') singleEquiv = main.price + 55 + refDrink; // 沙拉 $55
+      if (ct.key === 'C') singleEquiv = main.price + 126 + refDrink; // 麥脆雞腿2塊
+      if (ct.key === 'D') singleEquiv = main.price + refSide + refDrink + 59; // 冰炫風
+      if (ct.key === 'E') singleEquiv = main.price + refSide + refDrink + 68; // 雞塊6塊
+      const saving = singleEquiv - comboPrice;
+      return { ...ct, comboPrice, singleEquiv, saving };
+    });
+
+    hints.push({ type: 'combo', main, comboRows, hasSide, hasDrink });
+  }
+
+  return hints;
 }
 
 // ===================== OPTIMIZER =====================
@@ -575,6 +668,61 @@ function renderResults(r) {
       </div>
       <div class="text-3xl font-extrabold text-mcyellow">$${total}</div>
     </div>`;
+
+  // Promo Hints
+  const hints = getPromoHints();
+  if (hints.length > 0) {
+    html += `<div class="font-semibold text-gray-700 text-sm mb-2 mt-2">💡 還可以這樣更划算</div>
+             <div class="space-y-2 mb-4">`;
+    for (const h of hints) {
+
+      if (h.type === '1plus1_need_drink') {
+        const names = h.items.map(i => `${i.name} $${i.price}`).join('、');
+        html += `<div class="border border-blue-200 bg-blue-50 rounded-xl p-3">
+          <div class="font-semibold text-sm text-blue-800">🪙 銅板 1+1 $50 — 還差一杯飲料</div>
+          <div class="text-xs text-gray-600 mt-1">再加一杯可以湊 <strong>$50</strong>，可選：</div>
+          <div class="text-xs text-blue-700 mt-0.5">${names}</div>
+        </div>`;
+      }
+
+      if (h.type === '1plus1_need_food') {
+        const names = h.items.map(i => `${i.name} $${i.price}`).join('、');
+        html += `<div class="border border-blue-200 bg-blue-50 rounded-xl p-3">
+          <div class="font-semibold text-sm text-blue-800">🪙 銅板 1+1 $50 — 還差一項食物</div>
+          <div class="text-xs text-gray-600 mt-1">再加一項可以湊 <strong>$50</strong>，可選：</div>
+          <div class="text-xs text-blue-700 mt-0.5">${names}</div>
+        </div>`;
+      }
+
+      if (h.type === 'sweetcard_pick_free') {
+        const names = h.freeItems.map(i => `${i.name}($${i.price})`).join('　');
+        html += `<div class="border border-pink-200 bg-pink-50 rounded-xl p-3">
+          <div class="font-semibold text-sm text-pink-800">💳 甜心卡 — 可免費拿一件 B 區品項</div>
+          <div class="text-xs text-gray-600 mt-1">你選了 <strong>${h.triggerItem.name}</strong>，以下品項可免費帶走：</div>
+          <div class="text-xs text-pink-700 mt-0.5 leading-relaxed">${names}</div>
+        </div>`;
+      }
+
+      if (h.type === 'combo') {
+        const bestA = h.comboRows.find(r => r.key === 'A');
+        html += `<div class="border border-yellow-200 bg-yellow-50 rounded-xl p-3">
+          <div class="font-semibold text-sm text-yellow-800">🍟 套餐提示 — ${h.main.name}</div>
+          ${h.hasSide || h.hasDrink ? `<div class="text-xs text-orange-600 mt-0.5">⚠️ 你已選了副食或飲料，套餐可能更省，請對比下方</div>` : ''}
+          <div class="mt-2 space-y-1">
+            ${h.comboRows.map(r => `
+              <div class="flex items-center justify-between text-xs">
+                <span class="text-gray-700"><strong>${r.label}</strong> ${r.includes}</span>
+                <span class="font-bold text-yellow-800">$${r.comboPrice}
+                  ${r.saving > 0 ? `<span class="text-green-600 font-normal ml-1">省$${r.saving}</span>` : ''}
+                </span>
+              </div>`).join('')}
+          </div>
+          <div class="text-xs text-gray-400 mt-1.5">vs 分開單點：A 約 $${bestA.singleEquiv}</div>
+        </div>`;
+      }
+    }
+    html += '</div>';
+  }
 
   // Tips
   const needsApp = applied.some(a => a.promo.channel === 'app');
